@@ -8,19 +8,26 @@ namespace MakeDirAndDownloadFile
 {
     internal class Program
     {
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetConsoleWindow();
+        // Кросс-платформенное скрытие консоли
+        private static void HideConsole()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                [DllImport("kernel32.dll")]
+                static extern IntPtr GetConsoleWindow();
 
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+                [DllImport("user32.dll")]
+                static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        private const int SW_HIDE = 0;
-        private const int SW_SHOW = 5;
+                const int SW_HIDE = 0;
+                var handle = GetConsoleWindow();
+                ShowWindow(handle, SW_HIDE);
+            }
+        }
 
         static void Main(string[] args)
         {
-            var handle = GetConsoleWindow();
-            ShowWindow(handle, SW_HIDE);
+            HideConsole();
 
             try
             {
@@ -44,13 +51,8 @@ namespace MakeDirAndDownloadFile
             }
             catch (Exception ex)
             {
-                ShowWindow(handle, SW_SHOW);
                 Console.WriteLine($"Error: {ex.Message}");
                 Console.ReadKey();
-            }
-            finally
-            {
-                Environment.Exit(0);
             }
         }
 
